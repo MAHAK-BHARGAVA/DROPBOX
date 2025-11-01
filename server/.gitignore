@@ -1,0 +1,104 @@
+# =========================
+# Node.js / Express Backend
+# =========================
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs
+*.log
+logs/*
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Build and cache
+dist/
+build/
+.cache/
+coverage/
+.tmp/
+
+# Database dumps
+*.sql
+*.sqlite
+*.db
+dump.rdb
+
+# =========================
+# React Frontend
+# =========================
+
+# Dependencies
+frontend/node_modules/
+frontend/.pnp/
+.pnp.js
+
+# Build output
+frontend/build/
+frontend/.cache/
+frontend/dist/
+
+# Testing
+coverage/
+*.lcov
+
+# =========================
+# Miscellaneous / OS / Editors
+# =========================
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# =========================
+# Optional - if using Docker
+# =========================
+docker-compose.override.yml
+*.pid
+*.pid.lock
+
+# =========================
+# Optional - if using uploads
+# =========================
+uploads/
+public/uploads/
+frontend/public/uploads/
+
+# =========================
+# Optional - if using Firebase / Netlify / Vercel
+# =========================
+.firebase/
+.vercel/
+.netlify/
+
+# =========================
+# Optional - if using eslint or prettier caches
+# =========================
+.eslintcache
+.prettier-cache

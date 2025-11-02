@@ -1,7 +1,7 @@
 import { LitElement, css, html } from 'lit'
 import litLogo from './assets/lit.svg'
 import viteLogo from '/vite.svg'
-
+import './index.css' // Import Tailwind CSS styles
 /**
  * An example element.
  *

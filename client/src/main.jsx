@@ -21,20 +21,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
-          {/* Public routes */}
-          <Route path="login" element={<LoginPage />} />
-          <Route path="signup" element={<SignupPage />} />
+        {/* Login and Signup as top-level routes (not rendered inside Layout) */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
 
-          {/* Protected routes */}
-          <Route
-            index
-            element={
-              <ProtectedRoute>
-                <HomePage />
-              </ProtectedRoute>
-            }
-          />
+        {/* App layout for the main application pages */}
+        <Route path="/" element={<Layout />}>
+          <Route index element={<HomePage />} />
           <Route
             path="files"
             element={

@@ -26,8 +26,23 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="login" element={<LoginPage />} />
           <Route path="signup" element={<SignupPage />} />
 
-          {/* Home route (index) */}
-          <Route index element={<HomePage />} />
+          {/* Protected routes */}
+          <Route
+            index
+            element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="files"
+            element={
+              <ProtectedRoute>
+                <FilesPage />
+              </ProtectedRoute>
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -28,6 +28,7 @@ const Layout = () => {
       />
 
       <div className="flex">
+        {/* Render sidebar only when open */}
         {isSidebarOpen && (
           <Sidebar isOpen={isSidebarOpen} onToggle={handleSidebarClose} />
         )}

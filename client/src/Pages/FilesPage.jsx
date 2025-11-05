@@ -1,29 +1,56 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 
 const FilesPage = () => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
+  // ✅ Simulated local files (frontend-only)
   useEffect(() => {
-    fetchFiles();
+    setLoading(true);
+    // Simulate fetching files delay
+    setTimeout(() => {
+      // Example static data (mocked as if coming from API)
+      const demoFiles = [
+        {
+          _id: "1",
+          name: "Project_Plan.pdf",
+          size: 2.3,
+          createdAt: new Date(),
+        },
+        {
+          _id: "2",
+          name: "Design_Prototype.png",
+          size: 4.1,
+          createdAt: new Date(),
+        },
+        {
+          _id: "3",
+          name: "Meeting_Notes.txt",
+          size: 0.5,
+          createdAt: new Date(),
+        },
+      ];
+
+      setFiles(demoFiles);
+      setLoading(false);
+    }, 1000);
   }, []);
 
-  const fetchFiles = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:8000/api/files", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setFiles(response.data.files);
-    } catch (err) {
-      setError("Failed to fetch files");
-      console.error("Error fetching files:", err);
-    } finally {
-      setLoading(false);
-    }
+  // ✅ Filtered file list based on search
+  const filteredFiles = files.filter((file) =>
+    file.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // ✅ Simulated file download
+  const handleDownload = (fileName) => {
+    alert(`⬇️ "${fileName}" downloaded successfully (frontend only)`);
   };
+
+  // ----------------------------
+  // Rendering UI
+  // ----------------------------
 
   if (loading) {
     return (
@@ -39,19 +66,23 @@ const FilesPage = () => {
 
   return (
     <div className="container mx-auto px-4">
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">My Files</h1>
         <div className="flex space-x-4">
           <input
             type="text"
             placeholder="Search files..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
 
+      {/* Files Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {files.map((file) => (
+        {filteredFiles.map((file) => (
           <div
             key={file._id}
             className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
@@ -96,14 +127,12 @@ const FilesPage = () => {
                 </svg>
               </button>
             </div>
+
+            {/* File Footer */}
             <div className="mt-4 flex justify-between items-center">
               <span className="text-sm text-gray-500">{file.size} MB</span>
               <button
-                onClick={() =>
-                  window.open(
-                    `http://localhost:8000/api/files/download/${file._id}`
-                  )
-                }
+                onClick={() => handleDownload(file.name)}
                 className="text-blue-600 hover:text-blue-800"
               >
                 Download
@@ -113,9 +142,10 @@ const FilesPage = () => {
         ))}
       </div>
 
-      {files.length === 0 && (
+      {/* Empty State */}
+      {filteredFiles.length === 0 && (
         <div className="text-center text-gray-500 mt-8">
-          No files uploaded yet
+          No files found
         </div>
       )}
     </div>

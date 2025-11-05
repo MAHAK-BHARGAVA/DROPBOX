@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
+import Footer from "./Footer";
 
 const Layout = () => {
   // Sidebar open state: initially closed so only header hamburger is visible
@@ -41,6 +42,7 @@ const Layout = () => {
           <Outlet />
         </main>
       </div>
+      <Footer/>
     </div>
   );
 };

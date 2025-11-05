@@ -21,6 +21,11 @@ const Layout = () => {
     setHeaderHamburgerVisible(true);
   };
 
+  // Check auth token to adjust main background for unauthenticated visitors
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const mainBgClass = token ? "" : "bg-black text-white";
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
@@ -37,7 +42,7 @@ const Layout = () => {
         <main
           className={`flex-1 ${
             isSidebarOpen ? "ml-64" : "ml-0"
-          } p-6 transition-all duration-300`}
+          } p-6 transition-all duration-300 ${mainBgClass}`}
         >
           <Outlet />
         </main>

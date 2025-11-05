@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+// import axios from "axios"; // ❌ Commented out — no backend use
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -19,7 +19,11 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // ✅ Simulate login manually (frontend-only)
     try {
+      // Commenting out real API call
+      /*
       const response = await axios.post(
         "http://localhost:8000/api/auth/login",
         formData
@@ -28,8 +32,20 @@ const LoginPage = () => {
         localStorage.setItem("token", response.data.token);
         navigate("/");
       }
+      */
+
+      // ✅ Fake frontend login validation
+      if (formData.email === "test@example.com" && formData.password === "1234") {
+        // Save a dummy token to mimic authentication
+        localStorage.setItem("token", "dummy_frontend_token_12345");
+        alert("✅ Logged in successfully (frontend only)");
+        navigate("/");
+      } else {
+        setError("Invalid email or password (frontend check only)");
+      }
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid credentials");
+      // Handle frontend error (no axios errors here)
+      setError("Something went wrong during login");
     }
   };
 
@@ -94,3 +110,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+

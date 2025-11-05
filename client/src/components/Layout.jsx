@@ -1,19 +1,48 @@
-import React from "react";
-import Header from "./Header";
-import Footer from "./Footer";
+import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
-import "../../index.css";
+import Header from "./Header";
+import Sidebar from "./Sidebar";
 
-export default function Layout() {
-    return (
-        <div className="dark">
-            <Header />
-            {/* <Sidebar /> */}
-            <main className="min-h-[calc(100% - 70px)] w-full bg-primary dark:bg-primary-dark">
-                <Outlet />
-            </main>
-            
-            <Footer />
-        </div>
-    );
-}
+const Layout = () => {
+  // Sidebar open state: initially closed so only header hamburger is visible
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [headerHamburgerVisible, setHeaderHamburgerVisible] = useState(true);
+
+  const handleHeaderClick = () => {
+    // When header hamburger clicked: hide the header hamburger and open the sidebar
+    setHeaderHamburgerVisible(false);
+    setIsSidebarOpen(true);
+  };
+
+  const handleSidebarClose = () => {
+    // When in-sidebar close (X) clicked: close sidebar and show header hamburger
+    setIsSidebarOpen(false);
+    setHeaderHamburgerVisible(true);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header
+        showHamburger={headerHamburgerVisible}
+        onHeaderClick={handleHeaderClick}
+      />
+
+      <div className="flex">
+        {/* Render sidebar only when open */}
+        {isSidebarOpen && (
+          <Sidebar isOpen={isSidebarOpen} onToggle={handleSidebarClose} />
+        )}
+
+        <main
+          className={`flex-1 ${
+            isSidebarOpen ? "ml-64" : "ml-0"
+          } p-6 transition-all duration-300`}
+        >
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default Layout;

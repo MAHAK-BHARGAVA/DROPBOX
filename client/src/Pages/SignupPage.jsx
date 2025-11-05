@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+// import axios from "axios"; // ❌ Commented out — no backend used
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -20,7 +20,10 @@ const SignupPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
+      // ❌ Commented out API call (backend)
+      /*
       const response = await axios.post(
         "http://localhost:8000/api/auth/register",
         formData
@@ -28,8 +31,31 @@ const SignupPage = () => {
       if (response.data.success) {
         navigate("/login");
       }
+      */
+
+      // ✅ Frontend-only simulation of signup
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+
+      // Check if user already exists
+      const existingUser = users.find(
+        (u) => u.email.toLowerCase() === formData.email.toLowerCase()
+      );
+
+      if (existingUser) {
+        setError("User already exists (frontend check only)");
+        return;
+      }
+
+      // Save new user to localStorage
+      users.push(formData);
+      localStorage.setItem("users", JSON.stringify(users));
+
+      alert(`✅ Account created for ${formData.name} (frontend only)`);
+
+      // Redirect to login page
+      navigate("/login");
     } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
+      setError("Something went wrong during signup");
     }
   };
 

@@ -7,6 +7,7 @@ import HomePage from "./Pages/HomePage";
 import FilesPage from "./Pages/FilesPage";
 import Layout from "./components/Layout";
 import "./index.css";
+import GetStarted from "./Pages/GetStarted";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -24,10 +25,12 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         {/* Login and Signup as top-level routes (not rendered inside Layout) */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+      
 
         {/* App layout for the main application pages */}
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
+            <Route path="/upload-file" element={<GetStarted/>} />
           <Route
             path="files"
             element={

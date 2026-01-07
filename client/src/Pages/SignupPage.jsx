@@ -1,61 +1,49 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-// import axios from "axios"; // ❌ Commented out — no backend used
+import api from "../api/axios";
 
 const SignupPage = () => {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
   });
-  const [error, setError] = useState("");
+
+  const [errors, setErrors] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors([]); // clear previous errors
+    setLoading(true);
 
     try {
-      // ❌ Commented out API call (backend)
-      /*
-      const response = await axios.post(
-        "http://localhost:8000/api/auth/register",
-        formData
-      );
-      if (response.data.success) {
-        navigate("/login");
-      }
-      */
+      const response = await api.post("/api/auth/register", formData);
 
-      // ✅ Frontend-only simulation of signup
-      const users = JSON.parse(localStorage.getItem("users")) || [];
-
-      // Check if user already exists
-      const existingUser = users.find(
-        (u) => u.email.toLowerCase() === formData.email.toLowerCase()
-      );
-
-      if (existingUser) {
-        setError("User already exists (frontend check only)");
-        return;
-      }
-
-      // Save new user to localStorage
-      users.push(formData);
-      localStorage.setItem("users", JSON.stringify(users));
-
-      alert(`✅ Account created for ${formData.name} (frontend only)`);
-
-      // Redirect to login page
+      localStorage.setItem("token", response.data.token);
+      alert(`✅ Account created for ${response.data.user.name}`);
       navigate("/login");
+
     } catch (err) {
-      setError("Something went wrong during signup");
+      const data = err.response?.data;
+
+      if (data?.errors) {
+        // express-validator errors (array)
+        setErrors(data.errors);
+      } else if (data?.message) {
+        // single backend message
+        setErrors([data.message]);
+      } else {
+        setErrors(["Signup failed. Please try again."]);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,10 +54,16 @@ const SignupPage = () => {
           Create Account
         </h2>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          {error && (
-            <div className="text-red-500 text-sm text-center">{error}</div>
+        <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+
+          {errors.length > 0 && (
+            <div className="bg-red-50 border border-red-300 text-red-700 p-3 rounded text-sm">
+              {errors.map((err, index) => (
+                <div key={index}>• {err}</div>
+              ))}
+            </div>
           )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Full Name
@@ -79,9 +73,8 @@ const SignupPage = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your name"
-              required
             />
           </div>
 
@@ -94,9 +87,8 @@ const SignupPage = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your email"
-              required
             />
           </div>
 
@@ -109,17 +101,19 @@ const SignupPage = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
               placeholder="Enter a password"
-              required
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+            disabled={loading}
+            className={`w-full py-2 rounded text-white ${
+              loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            Sign Up
+            {loading ? "Creating Account..." : "Sign Up"}
           </button>
         </form>
 

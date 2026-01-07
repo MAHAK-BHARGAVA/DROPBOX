@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-// import axios from "axios"; // ❌ Commented out — no backend use
+import api from "../api/axios"; // Make sure this exists
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -8,44 +8,44 @@ const LoginPage = () => {
     email: "",
     password: "",
   });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors("");
+    setLoading(true);
 
-    // ✅ Simulate login manually (frontend-only)
-    try {
-      // Commenting out real API call
-      /*
-      const response = await axios.post(
-        "http://localhost:8000/api/auth/login",
-        formData
-      );
-      if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
-        navigate("/");
-      }
-      */
+   try {
+  const response = await api.post("/api/auth/login", formData);
 
-      // ✅ Fake frontend login validation
-      if (formData.email === "test@example.com" && formData.password === "1234") {
-        // Save a dummy token to mimic authentication
-        localStorage.setItem("token", "dummy_frontend_token_12345");
-        alert("✅ Logged in successfully (frontend only)");
-        navigate("/");
+  if (response.status !== 200) {
+    setErrors(response.data.message || "Login failed");
+    setLoading(false);
+    return;
+  }
+
+  localStorage.setItem("token", response.data.token);
+  navigate("/");
+}catch (err) {
+      const data = err.response?.data;
+
+      if (data?.errors) {
+        // express-validator errors (array)
+        setErrors(data.errors);
+      } else if (data?.message) {
+        // single backend message
+        setErrors([data.message]);
       } else {
-        setError("Invalid email or password (frontend check only)");
+        setErrors(["login failed. Please try again."]);
       }
-    } catch (err) {
-      // Handle frontend error (no axios errors here)
-      setError("Something went wrong during login");
+    }
+ finally {
+      setLoading(false);
     }
   };
 
@@ -56,9 +56,14 @@ const LoginPage = () => {
           Log In
         </h2>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          {error && (
-            <div className="text-red-500 text-sm text-center">{error}</div>
+        <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+
+          {errors.length > 0 && (
+            <div className="bg-red-50 border border-red-300 text-red-700 p-3 rounded text-sm">
+              {errors.map((err, index) => (
+                <div key={index}>• {err}</div>
+              ))}
+            </div>
           )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -92,9 +97,12 @@ const LoginPage = () => {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+            disabled={loading}
+            className={`w-full py-2 rounded text-white ${
+              loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            Log In
+            {loading ? "Logging in..." : "Log In"}
           </button>
         </form>
 
@@ -110,4 +118,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-

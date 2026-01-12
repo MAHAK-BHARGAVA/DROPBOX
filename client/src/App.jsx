@@ -1,16 +1,17 @@
-import { useState } from "react";
-import "./index.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import HomePage from "./Pages/HomePage";
 
-export default function App() {
+function App() {
   return (
-    <>
-    <div className="min-h-screen w-full bg-primary dark:bg-primary-dark">
-  <Layout />
-</div>
-
-
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<HomePage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
+
+export default App;

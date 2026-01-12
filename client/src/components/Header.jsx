@@ -1,11 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-const Header = ({
-  isSidebarCollapsed,
-  showHamburger = true,
-  onHeaderClick,
-}) => {
+const Header = ({ isSidebarCollapsed, showHamburger = true, onHeaderClick }) => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -15,13 +11,13 @@ const Header = ({
   };
 
   return (
-    <header className="flex justify-between items-center px-6 py-4 bg-blue-600 text-white">
+    <header className="flex justify-between items-center px-6 py-4 bg-blue-600 text-white shadow-md">
+      {/* Left: Hamburger + Logo */}
       <div className="flex items-center gap-4">
-        {/* Sidebar toggle placed in header */}
-        {showHamburger && (
+        {/* {showHamburger && (
           <button
             onClick={() => onHeaderClick && onHeaderClick()}
-            className="p-2 rounded-md hover:bg-blue-500 focus:outline-none"
+            className="p-2 rounded-md hover:bg-blue-500 focus:outline-none transition-colors"
             aria-label="Toggle sidebar"
           >
             <svg
@@ -38,29 +34,41 @@ const Header = ({
               />
             </svg>
           </button>
-        )}
+        )} */}
 
-        <Link to="/" className="text-2xl font-bold hover:text-white">
-          Dropbox
+        {/* Dropbox Logo */}
+        <Link to="/" className="flex items-center gap-2 group">
+          <img
+            src="/dropboxicon.svg"  // <-- Correct path since it's in public folder
+            alt="Dropbox Logo"
+            className="w-8 h-8 transition-transform duration-300 ease-in-out group-hover:scale-110"
+          />
+          <span className="font-bold text-2xl transition-all duration-300 ease-in-out group-hover:drop-shadow-md group-hover:scale-105">
+            Dropbox
+          </span>
         </Link>
       </div>
 
-      <div className="flex gap-4">
+      {/* Right: Auth Buttons */}
+      <div className="flex items-center gap-3">
         {token ? (
           <button
             onClick={handleLogout}
-            className="bg-white text-blue-600 px-3 py-1 rounded hover:bg-gray-100"
+            className="bg-white text-blue-600 px-4 py-1 rounded-md hover:bg-gray-100 transition-colors"
           >
             Log Out
           </button>
         ) : (
           <>
-            <Link to="/login" className="hover:underline">
+            <Link
+              to="/login"
+              className="px-3 py-1 rounded-md hover:underline transition-all"
+            >
               Log In
             </Link>
             <Link
               to="/signup"
-              className="bg-white text-blue-600 px-3 py-1 rounded hover:bg-gray-100"
+              className="bg-white text-blue-600 px-4 py-1 rounded-md hover:bg-gray-100 transition-colors"
             >
               Sign Up
             </Link>
@@ -71,7 +79,9 @@ const Header = ({
   );
 };
 
- export default Header;
+export default Header;
+
+
 
 // import React from "react";
 // import { Link, useNavigate } from "react-router-dom";
@@ -169,5 +179,3 @@ const Header = ({
 // };
 
 // export default Header;
-
-

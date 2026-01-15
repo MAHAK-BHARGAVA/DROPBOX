@@ -30,7 +30,10 @@ const LoginPage = () => {
   }
 
   localStorage.setItem("token", response.data.token);
-  navigate("/");
+  localStorage.setItem("userId", response.data.user.id);
+  localStorage.setItem("name", response.data.user.name);
+  localStorage.setItem("email", response.data.user.email);
+  navigate("/UserPage", { replace: true });
 }catch (err) {
       const data = err.response?.data;
 

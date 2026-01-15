@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import authRouter from "./routes/authRouter.js";
+import userRoutes from "./routes/userRoutes.js";
+import filesRouter from "./routes/filesRouter.js";
 
 dotenv.config();
 
@@ -19,9 +21,12 @@ app.use(
     credentials: true,
   })
 );
-
 // ✅ Routes
 app.use("/api/auth", authRouter);
+app.use("/api/user", userRoutes);
+app.use("/api/files", filesRouter);
+app.use("/uploads", express.static("uploads"));
+
 
 // ✅ MongoDB connection
 mongoose

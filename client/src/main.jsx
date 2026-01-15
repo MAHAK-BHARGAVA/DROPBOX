@@ -1,25 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import LoginPage from "./Pages/Loginpage";
-import SignupPage from "./Pages/SignupPage";
-import HomePage from "./Pages/HomePage";
-import FilesPage from "./Pages/FilesPage";
-import Layout from "./components/Layout";
+import App from "./App";
 import "./index.css";
 import GetStarted from "./Pages/GetStarted";
 
-// Protected Route component
-const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
-};
-
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
+    <App />
     <BrowserRouter>
       <Routes>
         {/* Login and Signup as top-level routes (not rendered inside Layout) */}

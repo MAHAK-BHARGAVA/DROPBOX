@@ -5,6 +5,7 @@ import cors from "cors";
 import authRouter from "./routes/authRouter.js";
 import userRoutes from "./routes/userRoutes.js";
 import filesRouter from "./routes/filesRouter.js";
+import storageRouter from "./routes/storageRouter.js";
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use(
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRoutes);
 app.use("/api/files", filesRouter);
+app.use("/api/storage", storageRouter);
 app.use("/uploads", express.static("uploads"));
 
 

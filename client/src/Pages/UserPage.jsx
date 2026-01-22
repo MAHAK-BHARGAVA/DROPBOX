@@ -3,7 +3,6 @@ import Header from "../components/users/Header";
 import FileDashboard from "../components/users/FileDashboard";
 
 const UserPage = () => {
-
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -15,8 +14,8 @@ const UserPage = () => {
           "http://localhost:5000/api/user/profile",
           {
             headers: {
-              Authorization: `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
 
@@ -32,9 +31,9 @@ const UserPage = () => {
   }, []);
 
   return (
-    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="bg-white dark:bg-gray-900 min-h-screen">
 
-      <Header userName={user?.name} />
+      <Header user={user} />
 
       <FileDashboard />
 
@@ -43,3 +42,4 @@ const UserPage = () => {
 };
 
 export default UserPage;
+

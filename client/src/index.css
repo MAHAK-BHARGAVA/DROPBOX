@@ -19,3 +19,38 @@ html, body {
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0%); }
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease forwards;
+}
+
+/* LIGHT MODE */
+/* body.light {
+  background: #f5f6fa;
+  color: #000;
+}
+
+body.light .card {
+  background: #ffffff;
+  color: #000;
+  border: 1px solid #e5e7eb;
+}
+
+/* DARK MODE */
+/* body.dark {
+  background: #0f172a;
+  color: #fff;
+}
+
+body.dark .card {
+  background: #1e293b;
+  color: #fff;
+  border: 1px solid #334155;
+} */
+
+

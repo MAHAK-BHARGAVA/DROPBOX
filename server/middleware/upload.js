@@ -4,8 +4,13 @@ import path from "path";
 const storage = multer.diskStorage({
   destination: "uploads/",
   filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
+
+    const ext = path.extname(file.originalname) || ".jpg";
+    const filename = Date.now() + ext;
+
+    cb(null, filename);
   }
 });
 
 export default multer({ storage });
+

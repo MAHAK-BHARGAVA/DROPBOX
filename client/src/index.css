@@ -19,3 +19,54 @@ html, body {
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0%); }
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease forwards;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.15s ease-out;
+}
+
+
+/* LIGHT MODE */
+/* body.light {
+  background: #f5f6fa;
+  color: #000;
+}
+
+body.light .card {
+  background: #ffffff;
+  color: #000;
+  border: 1px solid #e5e7eb;
+}
+
+/* DARK MODE */
+/* body.dark {
+  background: #0f172a;
+  color: #fff;
+}
+
+body.dark .card {
+  background: #1e293b;
+  color: #fff;
+  border: 1px solid #334155;
+} */
+
+

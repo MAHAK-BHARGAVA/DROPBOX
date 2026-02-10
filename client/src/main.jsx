@@ -13,6 +13,12 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import GetStarted from "./Pages/GetStarted";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import LoginPage from "./Pages/Loginpage";
+import SignupPage from "./Pages/SignupPage";
+import Layout from "./components/Layout";
+import HomePage from "./Pages/HomePage";
+import FilesPage from "./Pages/FilesPage";
 
 import { Toaster } from "react-hot-toast"; // ✅ add this
 
@@ -37,9 +43,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route
             path="files"
             element={
-              <ProtectedRoute>
+          
                 <FilesPage />
-              </ProtectedRoute>
+              
             }
           />
         </Route>

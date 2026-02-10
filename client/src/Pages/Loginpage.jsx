@@ -33,7 +33,7 @@ const LoginPage = () => {
   localStorage.setItem("userId", response.data.user.id);
   localStorage.setItem("name", response.data.user.name);
   localStorage.setItem("email", response.data.user.email);
-  navigate("/UserPage", { replace: true });
+ navigate("/user", { replace: true });
 }catch (err) {
       const data = err.response?.data;
 

@@ -12,16 +12,17 @@
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/vite": "^4.1.16",
     "axios": "^1.13.2",
-    "framer-motion": "^12.26.1",
+    "framer-motion": "^12.26.2",
     "lit": "^3.3.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-icons": "^5.5.0",
-    "react-router-dom": "^7.9.5",
+    "react-router-dom": "^7.12.0",
     "tailwindcss": "^4.1.16"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.0",
+    "baseline-browser-mapping": "^2.9.14",
     "vite": "^7.1.7"
   }
 }

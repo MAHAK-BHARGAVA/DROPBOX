@@ -1,13 +1,25 @@
-import { useRef } from "react";
+import { useRef , useState } from "react";
 import { FaFolder } from "react-icons/fa";
+import axios from "axios";
 
 export default function FileCard({
   file,
   activeMenu,
   setActiveMenu,
-  closePlusMenu
+  closePlusMenu,
+  refreshFiles,
+  onMoved,   
+  draggedFileId,
+  setDraggedFileId,
+  hoveredFolderId,
+  setHoveredFolderId,
+  onRenameClick,
+  onMoveToBin,
+  onInfo,
+  onShare
+  //onPreviewClick,
 }) {
-
+  const [isRemoving, setIsRemoving] = useState(false);
   const isFolder = file.type === "folder";
 
   const fileType = file.originalName
@@ -15,16 +27,62 @@ export default function FileCard({
     : file.filename.split(".").pop().toUpperCase();
 
   const menuRef = useRef(null);
+  const token = localStorage.getItem("token");
+
+  /* =====================
+     DRAG HANDLERS
+  ===================== */
 
   const handleDragStart = (e) => {
-    e.dataTransfer.setData("fileId", file.id);
+    setDraggedFileId(file._id);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("fileId", file._id);
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    const fileId = e.dataTransfer.getData("fileId");
-    console.log("Move file", fileId, "to folder", file.id);
+  const handleDragEnd = () => {
+    setDraggedFileId(null);
   };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    if (isFolder) {
+      setHoveredFolderId(file._id);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setHoveredFolderId(null);
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+
+    const fileId = e.dataTransfer.getData("fileId");
+    setHoveredFolderId(null);
+
+    if (!fileId || fileId === file._id) return;
+
+    try {
+      await axios.post(
+        "http://localhost:5000/api/files/move",
+        { fileId, targetFolderId: file._id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // ✅ Animate then remove
+     setIsRemoving(true);
+
+     setTimeout(() => {
+     onMoved(fileId);
+    }, 250);
+      refreshFiles();
+    } catch (err) {
+      console.error("Move failed");
+    }
+  };
+
+  /* =====================
+     CONTEXT MENU
+  ===================== */
 
   const handleRightClick = (e) => {
     e.preventDefault();
@@ -36,7 +94,6 @@ export default function FileCard({
     let x = e.clientX + 5;
     let y = e.clientY + 5;
 
-    // PREVENT GOING OUTSIDE SCREEN
     if (x + menuWidth > window.innerWidth) {
       x = window.innerWidth - menuWidth - 10;
     }
@@ -47,11 +104,53 @@ export default function FileCard({
 
     setActiveMenu({
       id: file._id,
-      x,
-      y
+      x: x,
+      y: y
     });
   };
 
+ const handleClick = (e) => {
+  if (draggedFileId) return;
+
+  // close context menu only
+  setActiveMenu(null);
+
+  // ❌ DO NOTHING on click for files (no download, no preview)
+};
+
+const handleDownload = async () => {
+  try {
+    const res = await axios.get(
+      `http://localhost:5000/api/files/download/${file._id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        responseType: "blob"
+      }
+    );
+
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = file.originalName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    setActiveMenu(null);
+  } catch (err) {
+    alert("Download failed");
+  }
+};
+
+  /* =====================
+     UI STATES
+  ===================== */
+
+  const isDragging = draggedFileId === file._id;
+  const isHovered = hoveredFolderId === file._id && isFolder;
   const isOpen = activeMenu?.id === file._id;
 
   return (
@@ -59,30 +158,32 @@ export default function FileCard({
       <div
         draggable={!isFolder}
         onDragStart={handleDragStart}
-        onDragOver={isFolder ? (e) => e.preventDefault() : undefined}
+        onDragEnd={handleDragEnd}
+        onDragOver={isFolder ? handleDragOver : undefined}
+        onDragLeave={isFolder ? handleDragLeave : undefined}
         onDrop={isFolder ? handleDrop : undefined}
-        onContextMenu={handleRightClick}
-        className="
-          group bg-[#1c2b39] p-4 rounded-xl
-          flex justify-between items-center
-          cursor-pointer hover:bg-[#0047ab]
-          transition duration-200 transform hover:scale-105
-        "
-        onClick={() => {
-          setActiveMenu(null);
-          if (!isFolder) {
-            window.open(`http://localhost:5000/${file.path}`);
-          }
+        onDoubleClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          // onPreviewClick(file);
         }}
+        onContextMenu={handleRightClick}
+        onClick={handleClick}
+        className={`
+        group p-4 rounded-xl flex justify-between items-center
+        transition-all duration-300 cursor-pointer
+
+         ${isDragging ? "opacity-40 scale-95" : ""}
+         ${isRemoving ? "opacity-0 scale-90" : ""}   // ✅ ADD
+         ${
+           isHovered
+             ? "bg-blue-700 ring-2 ring-blue-400"
+             : "bg-[#1c2b39] hover:bg-[#0047ab]"
+         }
+       `}
       >
-
         <div className="flex gap-4 items-center">
-
-          <div className="
-            w-12 h-12 flex items-center justify-center
-            rounded-lg bg-red-500 transition-transform
-            group-hover:scale-110
-          ">
+          <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-red-500">
             {isFolder ? (
               <FaFolder className="text-white text-2xl" />
             ) : (
@@ -98,7 +199,7 @@ export default function FileCard({
             </p>
 
             <p className="text-xs text-gray-300">
-              {isFolder ? "Folder" : "Uploaded"} •{" "}
+              {isFolder ? "Folder" : "Uploaded"}{" "}
               {file.uploadedAt
                 ? new Date(file.uploadedAt).toLocaleDateString()
                 : "N/A"}
@@ -106,47 +207,46 @@ export default function FileCard({
           </div>
         </div>
 
-        <div className="ml-auto flex space-x-2 opacity-0 group-hover:opacity-100 transition">
-          <button className="text-gray-400 hover:text-white">✏️</button>
-          <button className="text-gray-400 hover:text-white">🗑️</button>
-          <button className="text-gray-400 hover:text-white">⬇️</button>
-          <button className="text-gray-400 hover:text-white">🔗</button>
-        </div>
-
-        <button className="text-gray-400 text-xl ml-2">⋮</button>
+        <button className="text-gray-400 text-xl">⋮</button>
       </div>
 
       {isOpen && (
         <div
           ref={menuRef}
-          style={{
-            position: "fixed",
-            top: activeMenu.y,
-            left: activeMenu.x
-          }}
+          style={{ position: "fixed", top: activeMenu.y, left: activeMenu.x }}
           className="bg-[#2b3b4f] text-white rounded-lg shadow-xl w-52 z-50"
         >
-          <MenuBtn text="⬇️ Download" />
-          <MenuBtn text="✏️ Rename" />
-          <MenuBtn text="📄 Make a copy" />
-          <MenuBtn text="🔗 Share" />
+          <MenuBtn text="⬇️ Download" onClick={handleDownload} />
+          <MenuBtn text="✏️ Rename" onClick={() => onRenameClick(file)} />
+          <MenuBtn
+            text="🗑️ Move to bin"
+            onClick={(e) => {
+              e.stopPropagation();
 
+              // capture coordinates immediately
+              const rect = e.currentTarget.getBoundingClientRect();
+
+              onMoveToBin(file, rect);
+            }}
+          />
+          <MenuBtn text="🔗 Share" onClick={() => onShare(file)} />
           {isFolder && <MenuBtn text="📁 Add to folder" />}
-
-          <MenuBtn text="🗑️ Move to bin" />
-          <MenuBtn text="ℹ️ File info" />
+          <MenuBtn text="ℹ️ File info" onClick={() => onInfo(file)} />
+          {/* <MenuBtn text="👁️ Preview" onClick={() => onPreviewClick(file)} /> */}
         </div>
       )}
     </>
   );
-}
+} 
 
-function MenuBtn({ text }) {
+function MenuBtn({ text, onClick }) {
   return (
-    <button className="w-full text-left px-4 py-2 hover:bg-[#0047ab]">
+    <button
+      onClick={onClick}
+      className="w-full text-left px-4 py-2 hover:bg-[#0047ab]"
+    >
       {text}
     </button>
   );
 }
-
 

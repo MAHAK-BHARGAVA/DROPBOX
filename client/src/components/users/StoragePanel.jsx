@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 export default function StoragePanel() {
   const [usage, setUsage] = useState(null);
@@ -81,9 +82,7 @@ export default function StoragePanel() {
           {formatFileSize(usage.used)} of {formatFileSize(usage.limit)} used
         </p>
 
-        <p className="text-xs text-gray-500 mt-1">
-          Plan: {usage.plan}
-        </p>
+        <p className="text-xs text-gray-500 mt-1">Plan: {usage.plan}</p>
       </div>
 
       {/* UPGRADE CTA */}
@@ -106,30 +105,37 @@ export default function StoragePanel() {
 
       {/* STORAGE BREAKDOWN */}
       <div>
-        <h3 className="font-medium mb-2 text-gray-900">
-          Storage Breakdown
-        </h3>
+        <h3 className="font-medium mb-2 text-gray-900">Storage Breakdown</h3>
 
         <ul className="text-sm text-gray-600 space-y-1">
           <li>Files: {formatFileSize(usage.files)}</li>
-          <li>Trash: {formatFileSize(usage.trash)}</li>
+          <li>
+            <Link
+              to="/trash"
+              className="flex justify-between items-center text-blue-600 hover:underline"
+            >
+              <span>Trash</span>
+              <span>{formatFileSize(usage.trash)}</span>
+            </Link>
+
+            <p className="text-xs text-gray-500 mt-1">
+              Files in trash are auto-deleted after 30 days
+            </p>
+          </li>
+
           <li>Shared: {formatFileSize(usage.shared)}</li>
         </ul>
       </div>
 
       {/* LARGEST FILES */}
       <div>
-        <h3 className="font-medium mb-2 text-gray-900">
-          Largest Files
-        </h3>
+        <h3 className="font-medium mb-2 text-gray-900">Largest Files</h3>
 
         {largestFiles.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            No large files
-          </p>
+          <p className="text-sm text-gray-500">No large files</p>
         ) : (
           <ul className="space-y-2">
-            {largestFiles.map(file => (
+            {largestFiles.map((file) => (
               <li
                 key={file._id}
                 className="

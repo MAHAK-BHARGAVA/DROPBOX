@@ -6,6 +6,7 @@ import SignupPage from "./Pages/SignupPage";
 import FilesPage from "./Pages/FilesPage";
 import UserPage from "./Pages/UserPage";
 import ProfilePage from "./Pages/ProfilePage"; // mobile profile
+import TrashPage from "./Pages/TrashPage"; 
 
 function App() {
   return (
@@ -23,7 +24,8 @@ function App() {
 
         <Route>
           <Route path="user" element={<UserPage />} />
-          <Route path="profile" element={<ProfilePage  />} />
+          <Route path="profile" element={<ProfilePage  />} />\
+          <Route path="/trash" element={<TrashPage />} />
         </Route>
 
         {/* Fallback */}

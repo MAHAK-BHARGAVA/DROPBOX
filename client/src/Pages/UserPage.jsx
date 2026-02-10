@@ -4,6 +4,7 @@ import FileDashboard from "../components/users/FileDashboard";
 
 const UserPage = () => {
   const [user, setUser] = useState(null);
+  const [files, setFiles] = useState([]);
 
   useEffect(() => {
     const fetchUser = async () => {

@@ -40,6 +40,7 @@ export default function FileDashboard() {
   // share 
   const [shareFile, setShareFile] = useState(null);
 
+
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -57,7 +58,7 @@ export default function FileDashboard() {
 //   setPreviewFileData(file);
 //   setActiveMenu(null); // close context menu
 // };
-
+  
   const fetchFiles = async () => {
     try {
       const res = await axios.get(
@@ -219,27 +220,6 @@ export default function FileDashboard() {
     alert("Rename failed");
   }
 };
-
-/* ============================
-   MOVE TO BIN 
-============================ */
-// const moveToBin = async (file) => {
-//   try {
-//     // Optimistic UI: remove instantly
-//     setFiles((prev) => prev.filter((f) => f._id !== file._id));
-//     setActiveMenu(null);
-
-//     // Backend call (we’ll implement later)
-//     await axios.put(
-//       `http://localhost:5000/api/files/trash/${file._id}`,
-//       {},
-//       { headers: { Authorization: `Bearer ${token}` } }
-//     );
-//   } catch (err) {
-//     alert("Move to bin failed");
-//     fetchFiles(); // rollback
-//   }
-// };
 
 /* ============================
    TRASH / RESTORE HELPERS
@@ -560,6 +540,7 @@ function ShareModal({ file, onClose }) {
   const [access, setAccess] = useState(null);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("viewer");
+  const [showAccessMenu, setShowAccessMenu] = useState(false);
 
   const token = localStorage.getItem("token");
 
@@ -569,7 +550,7 @@ function ShareModal({ file, onClose }) {
 
   const fetchAccess = async () => {
     const res = await axios.get(
-      `http://localhost:5000/api/files/${file._id}/access`,
+      `http://localhost:5000/api/files/share/${file._id}/access`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     setAccess(res.data);
@@ -577,7 +558,7 @@ function ShareModal({ file, onClose }) {
 
   const addUser = async () => {
     await axios.post(
-      `http://localhost:5000/api/files/${file._id}/share`,
+      `http://localhost:5000/api/files/share/${file._id}/user`,
       { email, role },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -585,10 +566,19 @@ function ShareModal({ file, onClose }) {
     fetchAccess();
   };
 
-  const togglePublic = async () => {
+  const togglePublic = async (isPublic) => {
     await axios.put(
       `http://localhost:5000/api/files/share/${file._id}`,
-      {},
+      { isPublic },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    fetchAccess();
+  };
+
+  const changePublicRole = async (publicRole) => {
+    await axios.put(
+      `http://localhost:5000/api/files/share/${file._id}`,
+      { publicRole },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     fetchAccess();
@@ -598,8 +588,8 @@ function ShareModal({ file, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-xl w-[420px]">
-
+      {/* MODAL */}
+      <div className="bg-white rounded-xl w-[420px] relative p-6 pb-20">
         {/* HEADER */}
         <h2 className="text-lg font-semibold mb-4">
           Share “{file.originalName}”
@@ -609,13 +599,13 @@ function ShareModal({ file, onClose }) {
         <div className="flex gap-2 mb-4">
           <input
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="Add people by email"
             className="flex-1 border p-2 rounded"
           />
           <select
             value={role}
-            onChange={e => setRole(e.target.value)}
+            onChange={(e) => setRole(e.target.value)}
             className="border p-2 rounded"
           >
             <option value="viewer">Viewer</option>
@@ -630,14 +620,14 @@ function ShareModal({ file, onClose }) {
         <div className="mb-4">
           <p className="text-sm font-semibold mb-2">People with access</p>
 
-          <div className="text-sm">
-            <div className="flex justify-between py-1">
+          <div className="text-sm space-y-1">
+            <div className="flex justify-between">
               <span>{access.owner.email}</span>
               <span className="text-gray-500">Owner</span>
             </div>
 
-            {access.sharedWith.map(u => (
-              <div key={u.user._id} className="flex justify-between py-1">
+            {access.sharedWith.map((u) => (
+              <div key={u.user._id} className="flex justify-between">
                 <span>{u.user.email}</span>
                 <span className="text-gray-500">{u.role}</span>
               </div>
@@ -645,48 +635,138 @@ function ShareModal({ file, onClose }) {
           </div>
         </div>
 
-        {/* GENERAL ACCESS */}
-        <div className="border-t pt-3">
-          <p className="text-sm font-semibold mb-1">General access</p>
+        {/* =========================
+            GENERAL ACCESS
+        ========================= */}
+        <div className="border-t pt-4">
+          <p className="text-sm font-semibold mb-3">General access</p>
 
-          {access.isPublic ? (
-            <>
-              <p className="text-sm text-green-600">
-                Anyone with the link
-              </p>
+          <div className="flex justify-between items-start">
+            {/* LEFT */}
+            <div>
+              {!access.isPublic ? (
+                <>
+                  <p className="text-sm font-medium">🔒 Restricted</p>
+                  <p className="text-xs text-gray-500">
+                    Only people with access can open with the link
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium">🌍 Anyone with the link</p>
+                  <p className="text-xs text-gray-500">
+                    Anyone on the Internet with the link can{" "}
+                    {access.publicRole === "editor"
+                      ? "edit (sign in required)"
+                      : "view"}
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* RIGHT */}
+            <div className="flex items-center gap-2 relative">
+              {access.isPublic && (
+                <select
+                  value={access.publicRole}
+                  onChange={(e) => changePublicRole(e.target.value)}
+                  className="border rounded px-2 py-1 text-sm"
+                >
+                  <option value="viewer">Viewer</option>
+                  <option value="editor">Editor</option>
+                </select>
+              )}
+
               <button
-                onClick={() =>
-                  navigator.clipboard.writeText(
-                    `${window.location.origin}/public/${file.shareToken}`
-                  )
-                }
-                className="btn-blue mt-2 w-full"
+                onClick={() => setShowAccessMenu(!showAccessMenu)}
+                className="border rounded-md px-3 py-1 text-sm flex items-center gap-1 hover:bg-gray-100"
               >
-                Copy link
+                {access.isPublic ? "Anyone" : "Restricted"}
+                <span className="text-xs">▾</span>
               </button>
-            </>
-          ) : (
-            <p className="text-sm text-gray-500">
-              Restricted
-            </p>
-          )}
 
-          <button
-            onClick={togglePublic}
-            className="mt-2 text-blue-600 text-sm"
-          >
-            {access.isPublic ? "Turn off link sharing" : "Turn on link sharing"}
-          </button>
+              {showAccessMenu && (
+                <div className="absolute right-0 top-9 bg-white border rounded-lg shadow-lg w-56 z-50">
+                  <button
+                    onClick={() => {
+                      togglePublic(false);
+                      setShowAccessMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    🔒 Restricted
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      togglePublic(true);
+                      setShowAccessMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    🌍 Anyone with the link
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        <button onClick={onClose} className="mt-4 w-full">
-          Done
-        </button>
+        {/* =========================
+            STICKY ACTION BAR
+        ========================= */}
+        {/* <div className="absolute bottom-0 left-0 w-full px-6 py-3 border-t bg-white flex justify-between items-center rounded-b-xl">
+          <button
+            disabled={!access.isPublic}
+            onClick={() =>
+              navigator.clipboard.writeText(
+                `${window.location.origin}/public/${file.shareToken}`
+              )
+            }
+            className={`text-sm font-medium ${
+              access.isPublic
+                ? "text-blue-600 hover:underline"
+                : "text-gray-400 cursor-not-allowed"
+            }`}
+          >
+            Copy link
+          </button> */}
+
+        <div className="absolute bottom-0 left-0 w-full px-6 py-3 border-t bg-white flex justify-between items-center rounded-b-xl">
+          <button
+            disabled={!access.isPublic}
+            onClick={async () => {
+              if (!access.isPublic) return;
+
+              const publicLink = `${window.location.origin}/public/${file.shareToken}`;
+
+              try {
+                await navigator.clipboard.writeText(publicLink);
+                alert("Link copied to clipboard"); // optional feedback
+              } catch (err) {
+                console.error("Copy failed", err);
+              }
+            }}
+            className={`text-sm font-medium ${
+              access.isPublic
+                ? "text-blue-600 hover:underline"
+                : "text-gray-400 cursor-not-allowed"
+            }`}
+          >
+            Copy link
+          </button>
+
+          <button
+            onClick={onClose}
+            className="px-5 py-1.5 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700"
+          >
+            Done
+          </button>
+        </div>
       </div>
     </div>
   );
 }
-
 
 // function PreviewModal({ file, onClose }) {
 //   const token = localStorage.getItem("token");

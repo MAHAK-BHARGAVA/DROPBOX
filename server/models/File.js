@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
 const fileSchema = new mongoose.Schema({
   filename: String,
   originalName: String,
@@ -39,7 +40,17 @@ const fileSchema = new mongoose.Schema({
   },
 
   isPublic: { type: Boolean, default: false },
-  shareToken: { type: String },
+   shareToken: {
+    type: String,
+    default: () => crypto.randomBytes(24).toString("hex"),
+    unique: true,
+  },
+  publicRole: {
+  type: String,
+  enum: ["viewer", "editor"],
+  default: "viewer"
+},
+
 
   sharedWith: [
     {

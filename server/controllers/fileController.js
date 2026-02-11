@@ -120,8 +120,6 @@ export const getMyFiles = async (req, res) => {
     parentFolder: folderId || null
   }).sort({ uploadedAt: -1 });
 
-   console.log("GET /my-files HIT");
-
   const visible = [];
 
   for (const file of allFiles) {
@@ -453,120 +451,159 @@ export const downloadFile = async (req, res) => {
 };
 
 export const toggleShare = async (req, res) => {
-  const file = await File.findOne({
-    _id: req.params.fileId,
-    user: req.user._id
-  });
-
-  if (!file) return res.status(404).json({ message: "File not found" });
-
-  if (!file.isPublic) {
-    file.isPublic = true;
-    file.shareToken = crypto.randomBytes(16).toString("hex");
-  } else {
-    file.isPublic = false;
-    file.shareToken = null;
-  }
-
-  await file.save();
-  res.json(file);
-};
-
-export const getPublicFile = async (req, res) => {
-  const file = await File.findOne({
-    shareToken: req.params.shareToken,
-    isPublic: true
-  });
-
-  if (!file) {
-    return res.status(404).json({ message: "Invalid link" });
-  }
-
-  if (file.type === "folder") {
-    return res.status(400).json({ message: "Folders cannot be shared" });
-  }
-
-  const absolutePath = path.resolve(file.path);
-  res.sendFile(absolutePath);
-};
-
-export const shareWithUser = async (req, res) => {
   try {
-    const { email, role = "viewer" } = req.body;
-    const { fileId } = req.params;
+    const { isPublic, publicRole } = req.body;
 
     const file = await File.findOne({
-      _id: fileId,
-      user: req.user._id // ONLY owner can share
+      _id: req.params.fileId,
+      user: req.user._id
     });
 
     if (!file) {
       return res.status(404).json({ message: "File not found" });
     }
 
-    const userToShare = await User.findOne({ email });
-    if (!userToShare) {
+    // Toggle public access
+    if (typeof isPublic === "boolean") {
+      file.isPublic = isPublic;
+
+      if (isPublic && !file.shareToken) {
+        file.shareToken = crypto.randomBytes(16).toString("hex");
+      }
+
+      if (!isPublic) {
+        file.shareToken = null;
+      }
+    }
+
+    // Change public role
+    if (publicRole) {
+      file.publicRole = publicRole;
+    }
+
+    await file.save();
+    res.json(file);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to update sharing" });
+  }
+};
+
+// export const getPublicFile = async (req, res) => {
+//   const file = await File.findOne({
+//     shareToken: req.params.shareToken,
+//     isPublic: true
+//   });
+
+//   if (!file) {
+//     return res.status(404).json({ message: "Invalid link" });
+//   }
+
+//   if (file.type === "folder") {
+//     return res.status(400).json({ message: "Folders cannot be shared" });
+//   }
+
+//   const absolutePath = path.resolve(file.path);
+//   res.sendFile(absolutePath);
+// };
+
+export const shareWithUser = async (req, res) => {
+  try {
+    const { email, role } = req.body;
+
+    const file = await File.findOne({
+      _id: req.params.fileId,
+      user: req.user._id
+    });
+
+    if (!file) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const alreadyShared = file.sharedWith.some(
-      u => u.user.toString() === userToShare._id.toString()
+    // prevent duplicate share
+    const exists = file.sharedWith.find(
+      (u) => u.user.toString() === user._id.toString()
     );
 
-    if (alreadyShared) {
-      return res.status(400).json({ message: "User already has access" });
+    if (exists) {
+      exists.role = role;
+    } else {
+      file.sharedWith.push({ user: user._id, role });
     }
 
-    file.sharedWith.push({
-      user: userToShare._id,
-      role
-    });
-
     await file.save();
-
-    res.json({ message: "Access granted successfully" });
+    res.json({ message: "User added" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Failed to share file" });
   }
 };
+
 
 export const getFileAccess = async (req, res) => {
-  const file = await File.findOne({
-    _id: req.params.fileId,
-    user: req.user._id
-  })
-    .populate("sharedWith.user", "name email");
+  try {
+    const file = await File.findById(req.params.fileId)
+      .populate("sharedWith.user", "email")
+      .populate("user", "email");
 
-  if (!file) {
-    return res.status(404).json({ message: "File not found" });
+    if (!file) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    // only owner can see access list
+    if (file.user._id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    res.json({
+      owner: file.user,
+      sharedWith: file.sharedWith,
+      isPublic: file.isPublic,
+      publicRole: file.publicRole,
+      shareToken: file.shareToken
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch access" });
   }
-
-  res.json({
-    owner: req.user,
-    sharedWith: file.sharedWith,
-    isPublic: file.isPublic
-  });
 };
 
-export const removeUserAccess = async (req, res) => {
-  const { fileId, userId } = req.params;
+export const getPublicFile = async (req, res) => {
+  const { shareToken } = req.params;
 
   const file = await File.findOne({
-    _id: fileId,
-    user: req.user._id
+    shareToken,
+    isPublic: true,
   });
 
   if (!file) {
-    return res.status(404).json({ message: "File not found" });
+    return res.status(404).json({ message: "Link not valid" });
   }
 
-  file.sharedWith = file.sharedWith.filter(
-    u => u.user.toString() !== userId
-  );
-
-  await file.save();
-  res.json({ message: "Access removed" });
+  res.json(file);
 };
+
+// export const removeUserAccess = async (req, res) => {
+//   const { fileId, userId } = req.params;
+
+//   const file = await File.findOne({
+//     _id: fileId,
+//     user: req.user._id
+//   });
+
+//   if (!file) {
+//     return res.status(404).json({ message: "File not found" });
+//   }
+
+//   file.sharedWith = file.sharedWith.filter(
+//     u => u.user.toString() !== userId
+//   );
+
+//   await file.save();
+//   res.json({ message: "Access removed" });
+// };
 
 // export const previewFile = async (req, res) => {
 //   try {
